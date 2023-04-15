@@ -3,7 +3,8 @@ from scipy.stats import multivariate_normal
 import numpy as np 
 import matplotlib.pyplot as plt
 from classes import Two_SLS
-
+from statsmodels.regression.linear_model import OLS
+from scipy.optimize import minimize
 
 def dgp(n, β, π):
     ## Generate errors 
@@ -27,41 +28,32 @@ def dgp(n, β, π):
     return (y, x, Z) 
 
 
-def hansen(x, y, Z, b0):
-    ybar = y - b0*x
-    gammahat = np.linalg.solve(Z.T@Z, Z.T@ybar)
-    e = ybar - Z@gammahat
-    df = Z.shape[0] - Z.shape[1]
-    V = compute_variance(e, Z, df)
-    # define f statistic 
-    df1 = gammahat.size ## number of restrictions (setting all gamma = 0)
-    df2 = df ## N - number of parameters 
-    Q = Z@(V/Z.shape[0])@Z.T
-    fstat = (Z@gammahat).T@np.linalg.pinv(Q)@(Z@gammahat)
-    p = 2*(1 - iid.f.cdf(fstat, df1, df2))
-    return p
-
-
-n = 1000
-pi = np.linspace(0.001,1,9)
-fig, ax = plt.subplots(3,3)
-ax = ax.reshape(-1)
-for i, coef in enumerate(pi): 
-    b = np.empty(0)
-    se = np.empty(0)
-    for j in range(1000):
-        x, y, Z = dgp(n, β, π)
-        model = Two_SLS(y, x, Z)
-        b = np.append(b, model.beta_tsls)
-        # se = np.append(se, model.se())
-
+def chern_hansen(y,X,Z,b0):
+    lhs = y-b0*X
+    model = OLS(lhs, Z)
+    results = model.fit()
     
-    monte_carlo_5 = np.percentile(b, 5)
-    monte_carlo_95 = np.percentile(b, 95)
+    A = np.identity(len(results.params))
+    fresults = results.f_test(A)
+    fval = fresults.fvalue
+    pval = fresults.pvalue
+    
+    return -pval 
 
-    ax[i].hist(b)
-    ax[i].set_title(f"Pi = {np.round(coef, 2)}")
-    ax[i].axvline(x=1, color='r', label='True beta')
-    ax[i].axvline(x = monte_carlo_5, color = 'b')
-    ax[i].axvline(x = monte_carlo_95, color = 'b')
-fig.tight_layout()
+def do_two_sls(n, beta, pi):
+    x, y, Z = dgp(n, beta, pi)
+    model = Two_SLS(y, x, Z)
+    return model.beta_tsls.flatten()[0]
+
+def do_chern_hansen(n, beta, pi):
+    x, y, Z = dgp(n, beta, pi)
+    beta_hat = minimize(lambda b: chern_hansen(y,x,Z,b), x0=beta, method = 'Nelder-Mead').x
+    return beta_hat
+
+def calc_coverage(est, crit = 1.96):
+    ## Get coverage of Chern-Hansen
+    ci_lower = est.mean() - crit*np.sqrt(est.var())
+    ci_upper = est.mean() + crit*np.sqrt(est.var())
+    coverage = ci_upper - ci_lower 
+    return coverage
+

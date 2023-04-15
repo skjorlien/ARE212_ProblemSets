@@ -27,10 +27,15 @@ class Two_SLS:
 
     def ttest(self, testval = 0, slice = None):
         tstat = (self.beta_tsls - testval)/self.se()
-        return tstat
+        tstat.flatten()[0]
+        return tstat.flatten()[0]
         
     def ci(self, CI): # not quite working ... fml maybe should just use built in package I think you can.
         ci = t.interval(CI,df = self.df, loc=self.beta_tsls, scale = self.se()) 
 
         return (ci[0][0][0], ci[1][0][0])
     
+    def p_val(self):
+        tstat = self.ttest()
+        p = 2*(1 - t.cdf(abs(tstat), self.df))
+        return p
