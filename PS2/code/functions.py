@@ -43,7 +43,7 @@ def chern_hansen(y,X,Z,b0):
 def do_two_sls(n, beta, pi):
     x, y, Z = dgp(n, beta, pi)
     model = Two_SLS(y, x, Z)
-    return model.beta_tsls.flatten()[0]
+    return model.beta_tsls.flatten()[0], model.ttest(), model.p_val(), *model.ci(0.95)
 
 def do_chern_hansen(n, beta, pi):
     x, y, Z = dgp(n, beta, pi)
