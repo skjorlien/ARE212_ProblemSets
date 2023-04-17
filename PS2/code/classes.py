@@ -30,7 +30,7 @@ class Two_SLS:
         tstat.flatten()[0]
         return tstat.flatten()[0]
         
-    def ci(self, CI): # not quite working ... fml maybe should just use built in package I think you can.
+    def ci(self, CI):
         ci = t.interval(CI,df = self.df, loc=self.beta_tsls, scale = self.se()) 
 
         return (ci[0][0][0], ci[1][0][0])
