@@ -57,3 +57,35 @@ def calc_coverage(est, crit = 1.96):
     coverage = ci_upper - ci_lower 
     return coverage
 
+def mega_dgp(n,k, β, π):
+    u = iid.norm().rvs(size = (n*k, 1))
+    v = iid.norm().rvs(size= (n*k, 1))
+
+    ## the number of instruments to generate = number of elements in pi
+    if type(π) == np.ndarray:
+        if π.ndim == 1: 
+            π = π.reshape(-1, 1)
+    else: 
+        π = np.array([π]).reshape(-1,1)
+    l = π.size
+
+    # create x, y, Z
+    Z = multivariate_normal(np.zeros(l)+2, np.eye(l)).rvs(size=n*k)
+    if Z.ndim == 1: 
+        Z = Z.reshape(-1, 1)
+        
+    x = Z@π + v
+    y = β*x + u 
+    
+    y = y.reshape((k, n))
+    x = x.reshape((k, n))
+    Z = Z.reshape((k, n, -1))
+    return (y, x, Z) 
+
+def dirty_TSLS(y, X, Z):
+    # Quick and dirty TSLS implementation
+    xhat      = Z @ np.linalg.solve(Z.T@Z, Z.T@X)
+    beta_tsls = np.linalg.solve(xhat.T@xhat, xhat.T@y)
+    res       = y - beta_tsls*X
+    se       = np.sqrt(res.var()/(X.T@X))
+    return np.array([beta_tsls, se]).flatten()
