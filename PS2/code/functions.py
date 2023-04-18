@@ -89,3 +89,23 @@ def dirty_TSLS(y, X, Z):
     res       = y - beta_tsls*X
     se       = np.sqrt(res.var()/(X.T@X))
     return np.array([beta_tsls, se]).flatten()
+
+def run_many_instruments_monte_carlo(n_list, beta, N, L, K):
+    coverage = np.zeros((N,len(n_list)))
+    rmse     = np.zeros((N,len(n_list)))
+    mean_se = np.zeros((N,len(n_list)))
+
+    for (ii, n) in enumerate(n_list):
+        for l in L:
+            i = l-1
+            pi = np.array([(.5)**(j) for j in range(l)])
+            y_batch, x_batch, Z_batch = mega_dgp(n, K, beta, pi)
+            b_se = [dirty_TSLS(y_batch[[k],:].T, x_batch[[k],:].T, Z_batch[k,:,:]) for k in range(K)]
+            b_se = np.array(b_se)
+            b     = b_se[:,0]
+            se    = b_se[:,1]
+            rmse[i, ii]       = (((b-beta)**2).mean())**.5
+            mean_se[i, ii]    = se.mean()
+            coverage[i, ii]   = calc_coverage(b)
+
+    return rmse, mean_se, coverage
