@@ -64,7 +64,7 @@ class dgp():
         mu = np.random.rand(k+l+1,1) # random draws of the mean values
         A = np.random.rand(k+l+1,k+l+1)
         mu[k+l,:] = 0 # average of error term is 0
-        covXZu = A.T @ A  + np.eye(k+l+1)  # make it psd
+        covXZu = A.T @ A  + np.eye(k+l+1)*2  # make it psd
         covXZu[k+l,k:k+l]=0 # setting cov(Z, u)=0
         covXZu[k:k+l,k+l]=0 # setting cov(Z, u)=0
         XZu = multivariate_normal(mu.flatten(), covXZu).rvs(size=self.N)
@@ -95,7 +95,7 @@ class dgp():
         mu = np.random.rand(k+l+1,1) # random draws of the mean values
         A = np.random.rand(k+l+1,k+l+1)
         mu[k+l,:] = 0 # average of error term is 0
-        covXZu = A.T @ A  + np.eye(k+l+1)  # make it psd
+        covXZu = A.T @ A  + np.eye(k+l+1)*2  # make it psd
         covXZu[k+l,k:k+l]=0 # setting cov(Z, u)=0
         covXZu[k:k+l,k+l]=0 # setting cov(Z, u)=0
         XZu = multivariate_normal(mu.flatten(), covXZu).rvs(size=self.N)
@@ -126,7 +126,7 @@ class dgp():
         mu = np.random.rand(k+l+1,1) # random draws of the mean values
         A = np.random.rand(k+l+1,k+l+1)
         mu[k+l,:] = 0 # average of error term is 0
-        covXZu = A.T @ A  + np.eye(k+l+1)  # make it psd
+        covXZu = A.T @ A  + np.eye(k+l+1)*2  # make it psd
         covXZu[k+l,k:k+l]=0 # setting cov(Z, u)=0
         covXZu[k:k+l,k+l]=0 # setting cov(Z, u)=0
         XZu = multivariate_normal(mu.flatten(), covXZu).rvs(size=self.N)
