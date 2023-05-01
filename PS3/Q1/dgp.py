@@ -145,15 +145,18 @@ class dgp():
         
         return (y, X, Z, f), covXZu
     
-    def part_h(self, alpha=4., gamma=3.,l=2):
+    def part_h(self, alpha=1., gamma=3.):
         np.random.seed(self.seed)
-        u = iid.norm().rvs(size=(self.N,1))
-        
-        y = (alpha + u)**(1/gamma)
+        v = iid.uniform().rvs(size=(self.N, 1))*2-1
+        u = v**gamma
+        Z = v**(gamma-1)
+        y_gamma = u + alpha
+        y = y_gamma**(1/gamma)
 
         y = torch.tensor(y, dtype=self.t_type, device=self.device)
-        
-        return (y,)
+        Z = torch.tensor(Z, dtype=self.t_type, device=self.device)
+
+        return (y, Z)
 
 def moment_functions(part):
     if part=="a":
@@ -200,9 +203,9 @@ def moment_functions(part):
             return res
         
     if part=="h":
-        def f_m(b, y, X, Z, g):
+        def f_m(b, y, Z):
             n, k = Z.shape # Requires Z to be of matrix dim.
-            res = torch.concat([Z * (y - g(X, b)), y-g(X,b)],axis=1)
+            res = torch.concat([Z * (y**b[0] - b[1]), y**b[0] - b[1]],axis=1)
             res = res.reshape(n, k+1)
             return res
     return f_m
