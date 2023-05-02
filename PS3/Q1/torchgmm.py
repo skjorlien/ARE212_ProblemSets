@@ -77,4 +77,4 @@ def solve_kstep_GMM(steps, beta_init, data, n_m, device, t_type, f_m=linearModel
             print('GMM-{0} loss: {1:.6f}'.format(step+1, obj().item()))
     
     # return parameters and weights
-    return beta.detach().clone(), weights.detach().clone()
+    return beta.detach().clone(), weights.detach().clone(), obj().item()
